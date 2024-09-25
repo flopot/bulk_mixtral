@@ -37,7 +37,7 @@ st.markdown(
 )
 
 # Title and Setup
-st.title('Bulk ChatGPT v3')
+st.title('Bulk Mixtral')
 
 # Subtitle
 st.markdown(
@@ -47,13 +47,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Input for the OpenAI API key
-api_key = st.text_input("Enter your OpenAI API key", type="password")
-
 # File upload
 uploaded_file = st.file_uploader("Choose your CSV file", type=['csv'])
 
-if uploaded_file and api_key:
+if uploaded_file:
     # Read the uploaded file into a DataFrame to get column names
     df = pd.read_csv(uploaded_file)
     columns = df.columns.tolist()
