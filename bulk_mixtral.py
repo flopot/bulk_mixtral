@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from openai import OpenAI
 import time
 import logging
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -75,21 +74,20 @@ if uploaded_file and api_key:
 
     # Button to download responses as CSV
     if st.button("Generate Responses"):
-        client = OpenAI(api_key=api_key)
+        # Load Mistral's Mixtral model
+        tokenizer = AutoTokenizer.from_pretrained("mistralai/Mixtral-8x7B-v0.1")
+        model = AutoModelForCausalLM.from_pretrained("mistralai/Mixtral-8x7B-v0.1")
+    
         all_responses = []
-
-      # Load Mistral's Mixtral model
-      tokenizer = AutoTokenizer.from_pretrained("mistralai/Mixtral-8x7B-v0.1")
-      model = AutoModelForCausalLM.from_pretrained("mistralai/Mixtral-8x7B-v0.1")
-
-      # Function to generate responses using Mixtral model
-      def generate_response(row):
-          formatted_user_prompt = user_prompt_template.format(**{var: row[col] for col, var in column_to_variable.items()})
-          inputs = tokenizer(formatted_user_prompt, return_tensors="pt")
-          outputs = model.generate(**inputs)
-          response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-          return response
-
+    
+        # Function to generate responses using Mixtral model
+        def generate_response(row):
+            formatted_user_prompt = user_prompt_template.format(**{var: row[col] for col, var in column_to_variable.items()})
+            inputs = tokenizer(formatted_user_prompt, return_tensors="pt")
+            outputs = model.generate(**inputs)
+            response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            return response
+    
         # Batch processing
         batch_size = 10  # Adjust the batch size as needed
         num_batches = len(df) // batch_size + 1
@@ -97,7 +95,7 @@ if uploaded_file and api_key:
             start_idx = batch_num * batch_size
             end_idx = start_idx + batch_size
             batch_df = df.iloc[start_idx:end_idx]
-
+    
             # Iterate over each row in the batch and collect responses
             for index, row in batch_df.iterrows():
                 try:
@@ -106,15 +104,13 @@ if uploaded_file and api_key:
                     all_responses.append(response_data)
                 except Exception as e:
                     logging.error(f"Error processing row {index}: {e}")
-                # Respect API rate limits
-                #time.sleep(0.5)
-
+    
             # Update progress
             progress_text.text(f"Processed batch {batch_num + 1} of {num_batches}")
-
+    
         # Create the DataFrame
         response_df = pd.DataFrame(all_responses, columns=columns + ['Response'])
         csv = response_df.to_csv(index=False).encode('utf-8')
-
+    
         # Provide the download button for the CSV
         st.download_button(label="Download as CSV", data=csv, file_name="responses.csv", mime="text/csv")
