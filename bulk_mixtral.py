@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import time
 import logging
-from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 # Set up logging
@@ -69,12 +69,11 @@ if uploaded_file:
     # Placeholder for progress updates
     progress_text = st.empty()
 
-    # Button to download responses as CSV
+    # Button to generate responses
     if st.button("Generate Responses"):
-        # Load Mistral's Mixtral model
-        tokenizer = AutoTokenizer.from_pretrained("mistralai/Mixtral-8x7B-v0.1")
-        model = AutoModelForCausalLM.from_pretrained("mistralai/Mixtral-8x7B-v0.1")
-    
+        # Load model directly
+        tokenizer = AutoTokenizer.from_pretrained("mistralai/Mixtral-8x7B-Instruct-v0.1")
+        model = AutoModelForCausalLM.from_pretrained("mistralai/Mixtral-8x7B-Instruct-v0.1")  
         all_responses = []
     
         # Function to generate responses using Mixtral model
